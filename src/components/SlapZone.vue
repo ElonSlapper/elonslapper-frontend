@@ -23,7 +23,7 @@
 
       <div>
         <p class="mt-4 text-lg">
-          You are in the top <span> 1%</span> of all slappers!
+          You're in the top <span> 1%</span> of all slappers!
         </p>
       </div>
 
