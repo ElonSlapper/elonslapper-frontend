@@ -14,13 +14,7 @@
       <div class="my-20">
         <p class=" text-md text-gray-700">Global Slaps</p>
         <p>
-          <span class="text-xl font-mono">{{ globalCount?.toLocaleString() ?? '...' }}</span>
-        </p>
-      </div>
-
-      <div>
-        <p class="mt-4 text-lg">
-          You're in the top <span>{{ percentileDisplay }}</span> of all slappers!
+          <span class="text-xl font-mono">113,000,231</span>
         </p>
       </div>
     </div>
@@ -29,46 +23,59 @@
 
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref } from 'vue'
 import { useSlapStore } from '@/stores/slap'
 import elonImage from '@/assets/elon.png'
 import slappedImage from '@/assets/slapped.png'
 
 const store = useSlapStore()
 const currentImage = ref(elonImage)
-
-const globalCount = ref<number | null>(null)
-const totalUsers = ref<number | null>(null)
 const isCursorClicked = ref(false)
 
-const percentile = computed(() => {
-  if (!totalUsers.value || totalUsers.value <= 1) return null
-  const rank = store.countRank // Assume 1 is best
-  return 100 * (rank / totalUsers.value)
-})
-
-const percentileDisplay = computed(() => {
-  if (percentile.value === null) return '...'
-  return `${(100 - percentile.value).toFixed(2)}%`
-})
+let timeout: ReturnType<typeof setTimeout> | null = null
+const DEBOUNCE_DELAY = 2000 // Wait 2 seconds after last slap before sending
 
 function slap() {
   store.slap()
+
+  debounceSendSlaps()
+
   currentImage.value = slappedImage
   isCursorClicked.value = true
   setTimeout(() => {
     currentImage.value = elonImage
     isCursorClicked.value = false
   }, 150)
-  fetchStats()
 }
 
-async function fetchStats() {
-  globalCount.value = await store.getGlobalCount()
-  totalUsers.value = await store.getTotalUsers()
+function debounceSendSlaps() {
+  if (timeout) clearTimeout(timeout)
+  timeout = setTimeout(() => {
+    const unsent = store.getUnsentSlaps()
+    if (unsent > 0) sendSlaps(unsent)
+  }, DEBOUNCE_DELAY)
 }
 
-onMounted(fetchStats)
+async function sendSlaps(count: number) {
+  try {
+    const res = await fetch('http://localhost/api/slaps/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        slap_count: count,
+        user_id: store.userId,
+      }),
+    })
+
+    if (res.ok) {
+      store.markSubmitted()
+    } else {
+      console.warn('Failed to submit slaps, will retry later')
+    }
+  } catch (err) {
+    console.error('Network error, will retry later', err)
+  }
+}
 
 </script>
 
