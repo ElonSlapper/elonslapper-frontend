@@ -23,7 +23,7 @@
 
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useSlapStore } from '@/stores/slap'
 import elonImage from '@/assets/elon.png'
 import slappedImage from '@/assets/slapped.png'
@@ -34,10 +34,12 @@ const isCursorClicked = ref(false)
 
 let timeout: ReturnType<typeof setTimeout> | null = null
 const DEBOUNCE_DELAY = 2000 // Wait 2 seconds after last slap before sending
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+
+onMounted(fetchUserId)
 
 function slap() {
   store.slap()
-
   debounceSendSlaps()
 
   currentImage.value = slappedImage
@@ -56,9 +58,26 @@ function debounceSendSlaps() {
   }, DEBOUNCE_DELAY)
 }
 
+async function fetchUserId() {
+  if (store.userId) return
+  try {
+    const res = await fetch(`${API_BASE_URL}/slaps/create-user`, {
+      method: 'POST',
+    })
+    const data = await res.json()
+    if (res.ok && data.user_id) {
+      store.setUserId(data.user_id)
+    } else {
+      console.error('Failed to fetch user ID', data)
+    }
+  } catch (err) {
+    console.error('Error fetching user ID:', err)
+  }
+}
+
 async function sendSlaps(count: number) {
   try {
-    const res = await fetch('http://localhost/api/slaps/update', {
+    const res = await fetch(`${API_BASE_URL}/slaps/update`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
