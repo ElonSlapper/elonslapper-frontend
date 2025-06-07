@@ -14,7 +14,7 @@
       <div class="my-20">
         <p class=" text-md text-gray-700">Global Slaps</p>
         <p>
-          <span class="text-xl font-mono">113,000,231</span>
+          <span class="text-xl font-mono">{{globalSlaps}}</span>
         </p>
       </div>
     </div>
@@ -23,7 +23,7 @@
 
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useSlapStore } from '@/stores/slap'
 import elonImage from '@/assets/elon.png'
 import slappedImage from '@/assets/slapped.png'
@@ -36,7 +36,31 @@ let timeout: ReturnType<typeof setTimeout> | null = null
 const DEBOUNCE_DELAY = 2000 // Wait 2 seconds after last slap before sending
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
-onMounted(fetchUserId)
+import Echo from '@/plugins/echo';
+
+const globalSlaps = ref(0);
+
+function handleSlapUpdate(event) {
+  // Laravel is sending a JSON string in the `data` field
+  try {
+    const data = typeof event === 'string' ? JSON.parse(event) : event;
+    if (data.global_slaps !== undefined) {
+      globalSlaps.value = data.global_slaps;
+      console.log('🔄 Updated global slaps:', data.global_slaps);
+    }
+  } catch (err) {
+    console.error('Failed to parse slap update:', err);
+  }
+}
+
+onMounted(() => {
+  Echo.channel('slaps').listen('.slap.updated', handleSlapUpdate);
+  console.log("Listening on slaps channel")
+});
+
+onUnmounted(() => {
+  Echo.leave('slaps');
+});
 
 function slap() {
   store.slap()
