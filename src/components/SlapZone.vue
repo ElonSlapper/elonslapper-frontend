@@ -53,9 +53,28 @@ function handleSlapUpdate(event) {
   }
 }
 
+async function fetchGlobalSlaps() {
+  try {
+    const res = await fetch(`${API_BASE_URL}/slaps/global-count`);
+    const data = await res.json();
+    if (data.count !== undefined) {
+      globalSlaps.value = data.count;
+      console.log('📦 Loaded initial slaps:', data.count);
+    }
+  } catch (err) {
+    console.error('❌ Failed to fetch slaps:', err);
+  }
+}
+
 onMounted(() => {
-  Echo.channel('slaps').listen('.slap.updated', handleSlapUpdate);
-  console.log("Listening on slaps channel")
+  fetchGlobalSlaps(); // Load immediately
+
+  Echo.channel('slaps')
+    .listen('.slap.updated', handleSlapUpdate);
+
+  Echo.connector.pusher.connection.bind('connected', () => {
+    console.log('✅ WebSocket connected');
+  });
 });
 
 onUnmounted(() => {
