@@ -30,8 +30,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useSlapStore } from '@/stores/slap'
-import elonImage from '@/assets/elon.png'
-import slappedImage from '@/assets/slapped.png'
+import elonImage from '@/assets/elon.jpg'
+import slappedImage from '@/assets/slapped.jpg'
 
 const store = useSlapStore()
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
