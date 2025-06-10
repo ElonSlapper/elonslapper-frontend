@@ -109,15 +109,29 @@ async function fetchGlobalSlaps() {
   }
 }
 
+function handleVisibilityChange() {
+  if (document.hidden) {
+    clearInterval(interval)
+    console.log('⏸️ Polling paused (tab hidden)')
+  } else {
+    fetchGlobalSlaps()
+    interval = setInterval(fetchGlobalSlaps, 15000)
+    console.log('▶️ Polling resumed (tab visible)')
+  }
+}
+
 onMounted(() => {
   fetchUserId()
   fetchGlobalSlaps()
   interval = setInterval(fetchGlobalSlaps, 15000)
+  document.addEventListener('visibilitychange', handleVisibilityChange)
 })
 
 onUnmounted(() => {
   clearInterval(interval)
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
 })
+
 </script>
 
 
