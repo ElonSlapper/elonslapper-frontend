@@ -35,22 +35,15 @@ import slappedImage from '@/assets/slapped.png'
 
 const store = useSlapStore()
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
-const DEBOUNCE_DELAY = 2000
 
 const currentImage = ref(elonImage)
 const isCursorClicked = ref(false)
 let timeout: ReturnType<typeof setTimeout> | null = null
+let interval: ReturnType<typeof setInterval>
 
-// Slap counters
-const globalSlaps = ref(0)
-
-const formattedGlobalSlaps = computed(() =>
-  globalSlaps.value.toLocaleString()
-)
-
-const formattedStoreCount = computed(() =>
-  store.count.toLocaleString()
-)
+// Computed
+const formattedStoreCount = computed(() => store.count.toLocaleString())
+const formattedGlobalSlaps = computed(() => store.globalSlaps.toLocaleString())
 
 function slap() {
   store.slap()
@@ -69,7 +62,7 @@ function debounceSendSlaps() {
   timeout = setTimeout(() => {
     const unsent = store.getUnsentSlaps()
     if (unsent > 0) sendSlaps(unsent)
-  }, DEBOUNCE_DELAY)
+  }, 2000)
 }
 
 async function sendSlaps(count: number) {
@@ -77,19 +70,16 @@ async function sendSlaps(count: number) {
     const res = await fetch(`${API_BASE_URL}/slaps/update`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        slap_count: count,
-        user_id: store.userId,
-      }),
+      body: JSON.stringify({ slap_count: count, user_id: store.userId }),
     })
 
     if (res.ok) {
       store.markSubmitted()
     } else {
-      console.warn('⚠️ Failed to submit slaps, will retry later')
+      console.warn('⚠️ Failed to submit slaps')
     }
   } catch (err) {
-    console.error('❌ Network error while submitting slaps:', err)
+    console.error('❌ Error sending slaps:', err)
   }
 }
 
@@ -100,11 +90,9 @@ async function fetchUserId() {
     const data = await res.json()
     if (res.ok && data.user_id) {
       store.setUserId(data.user_id)
-    } else {
-      console.error('❌ Failed to fetch user ID', data)
     }
   } catch (err) {
-    console.error('❌ Error fetching user ID:', err)
+    console.error('❌ Failed to fetch user ID:', err)
   }
 }
 
@@ -113,42 +101,25 @@ async function fetchGlobalSlaps() {
     const res = await fetch(`${API_BASE_URL}/slaps/global-count`)
     const data = await res.json()
     if (data.count !== undefined) {
-      globalSlaps.value = data.count
-      console.log('📦 Loaded global slaps:', data.count)
+      store.setGlobalSlaps(data.count)
+      console.log('🌍 Global slaps updated:', data.count)
     }
   } catch (err) {
-    console.error('❌ Failed to fetch global slaps:', err)
+    console.error('❌ Error fetching global slaps:', err)
   }
 }
-
-function handleSlapUpdate(event: any) {
-  try {
-    const data = typeof event === 'string' ? JSON.parse(event) : event
-    if (data.global_slaps !== undefined) {
-      globalSlaps.value = data.global_slaps
-      console.log('🔄 WebSocket update:', data.global_slaps)
-    }
-  } catch (err) {
-    console.error('❌ Error parsing slap update:', err)
-  }
-}
-
-let interval: ReturnType<typeof setInterval>
 
 onMounted(() => {
   fetchUserId()
   fetchGlobalSlaps()
-
-  // Poll global slaps every 15 seconds
   interval = setInterval(fetchGlobalSlaps, 15000)
 })
 
 onUnmounted(() => {
   clearInterval(interval)
 })
-
-
 </script>
+
 
 <style scoped>
 img {

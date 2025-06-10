@@ -5,6 +5,7 @@ export const useSlapStore = defineStore('slap', {
     count: Number(localStorage.getItem('slapCount')) || 0,
     userId: localStorage.getItem('userId') || null,
     lastSubmittedCount: Number(localStorage.getItem('lastSubmittedCount')) || 0,
+    globalSlaps: Number(localStorage.getItem('globalSlaps')) || 0
   }),
   actions: {
     slap() {
@@ -21,6 +22,10 @@ export const useSlapStore = defineStore('slap', {
     markSubmitted() {
       this.lastSubmittedCount = this.count
       localStorage.setItem('lastSubmittedCount', this.lastSubmittedCount.toString())
-    }
+    },
+    setGlobalSlaps(count: number) {
+      this.globalSlaps = count
+      localStorage.setItem('globalSlaps', count.toString())
+    },
   }
 })
