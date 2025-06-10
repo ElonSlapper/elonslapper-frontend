@@ -32,7 +32,6 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useSlapStore } from '@/stores/slap'
 import elonImage from '@/assets/elon.png'
 import slappedImage from '@/assets/slapped.png'
-import Echo from '@/plugins/echo'
 
 const store = useSlapStore()
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
@@ -115,7 +114,7 @@ async function fetchGlobalSlaps() {
     const data = await res.json()
     if (data.count !== undefined) {
       globalSlaps.value = data.count
-      console.log('📦 Loaded initial slaps:', data.count)
+      console.log('📦 Loaded global slaps:', data.count)
     }
   } catch (err) {
     console.error('❌ Failed to fetch global slaps:', err)
@@ -134,21 +133,20 @@ function handleSlapUpdate(event: any) {
   }
 }
 
+let interval: ReturnType<typeof setInterval>
+
 onMounted(() => {
   fetchUserId()
   fetchGlobalSlaps()
 
-  Echo.channel('slaps')
-    .listen('.slap.updated', handleSlapUpdate)
-
-  Echo.connector.pusher.connection.bind('connected', () => {
-    console.log('✅ WebSocket connected')
-  })
+  // Poll global slaps every 15 seconds
+  interval = setInterval(fetchGlobalSlaps, 15000)
 })
 
 onUnmounted(() => {
-  Echo.leave('slaps')
+  clearInterval(interval)
 })
+
 
 </script>
 
