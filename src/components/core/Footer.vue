@@ -4,7 +4,7 @@
       <hr class="my-4 border-gray-200 dark:border-gray-700" />
 
       <p class="text-sm text-gray-600 dark:text-gray-400">
-        © {{ date }} <span class="font-semibold">ElonSlapper</span> — Made by Angus
+        © {{ date }} <span class="font-semibold">ElonSlapper</span> — by Angus 🥴
       </p>
 
       <p class="text-xs text-gray-500 dark:text-gray-500 font-mono">

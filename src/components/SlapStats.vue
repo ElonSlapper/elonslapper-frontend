@@ -13,12 +13,13 @@
       <div class="overflow-hidden rounded-lg bg-white px-4 py-5 sm:p-6">
         <dt class="truncate text-sm font-medium text-gray-500">Your Rank</dt>
         <dd class="mt-1 text-xl font-mono tracking-tight text-gray-900">
-          {{ rank }} / {{ totalUsers }}
+          <span :class="rank === '1' ? 'text-green-700' : 'text-gray-900'">{{ rank }}</span>
+          <span class="text-gray-500"> / {{ totalUsers }}</span>
         </dd>
       </div>
 
       <!-- Global Slaps (spans 2 cols on mobile) -->
-      <div class="col-span-2 sm:col-span-1 overflow-hidden rounded-lg bg-white px-4 py-5  sm:p-6">
+      <div class="col-span-2 sm:col-span-1 overflow-hidden rounded-lg bg-white px-4 py-5 sm:p-6">
         <dt class="truncate text-sm font-medium text-gray-500">Global slaps</dt>
         <dd class="mt-1 text-xl font-mono tracking-tight text-gray-900">
           {{ globalSlaps }}
@@ -26,8 +27,6 @@
       </div>
     </dl>
   </div>
-
-
 </template>
 
 <script setup lang="ts">
