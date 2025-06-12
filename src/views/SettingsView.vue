@@ -21,8 +21,10 @@ import MainButton from '@/components/MainButton.vue';
       <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
         <dt class="text-sm/6 font-medium text-gray-900">Actions</dt>
         <dd class="mt-2 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
-          <MainButton>Refresh</MainButton>
-          <MainButton variant="danger">Delete all data</MainButton>
+          <div class="flex flex-col space-y-2 sm:flex-row sm:space-x-2 sm:space-y-0 sm:items-center">
+            <MainButton>Force update</MainButton>
+            <MainButton variant="danger">Clear all data</MainButton>
+          </div>
         </dd>
       </div>
     </dl>
