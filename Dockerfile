@@ -25,6 +25,9 @@ RUN rm -rf /usr/share/nginx/html/*
 # Copy built static files from the build stage to nginx html folder
 COPY --from=prerelease /temp/build/dist /usr/share/nginx/html
 
+# Copy custom nginx configuration
+COPY nginx.conf /etc/nginx/nginx.conf
+
 # Expose port 80 to serve content
 EXPOSE 80
 

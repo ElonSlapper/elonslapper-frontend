@@ -1,11 +1,11 @@
 <template>
-  <div class="container mx-auto text-center p-8">
+  <div class="container mx-auto text-center p-5">
     <div class="flex flex-col items-center">
       <img
         :src="currentImage"
         alt="Elon Musk"
         :class="[
-          'w-80 h-80 rounded-full mb-6 transition duration-200',
+          'w-80 h-80 rounded-full mb-6 transition duration-200 touch-manipulation',
           isCursorClicked ? 'cursor-clicked' : 'custom-cursor'
         ]"
         @click="slap"
@@ -23,12 +23,16 @@
           <span class="text-xl font-mono">{{ formattedGlobalSlaps }}</span>
         </p>
       </div>
+
+      <div class="my-10">
+        Your rank is <span class="font-mono">{{ formattedRank }}</span> out of <span class="font-mono">{{ formattedTotalUsers }}</span> users.
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useSlapStore } from '@/stores/slap'
 import elonImage from '@/assets/elon.jpg'
 import slappedImage from '@/assets/slapped.jpg'
@@ -44,6 +48,32 @@ let interval: ReturnType<typeof setInterval>
 // Computed
 const formattedStoreCount = computed(() => store.count.toLocaleString())
 const formattedGlobalSlaps = computed(() => store.globalSlaps.toLocaleString())
+
+const formattedRank = computed(() =>
+  store.rank > 0 ? store.rank.toLocaleString() : '—'
+)
+
+const formattedTotalUsers = computed(() =>
+  store.totalUsers > 0 ? store.totalUsers.toLocaleString() : '—'
+)
+
+
+
+async function fetchRankAndTotal() {
+  if (!store.userId) return
+  try {
+    const res = await fetch(`${API_BASE_URL}/slaps/rank/?user_id=${store.userId}`)
+    const data = await res.json()
+    if (res.ok && data.rank !== undefined && data.total_users !== undefined) {
+      store.setRank(data.rank)
+      store.setTotalUsers(data.total_users)
+      console.log('🔢 Rank & total users updated:', data)
+    }
+  } catch (err) {
+    console.error('❌ Error fetching rank and total users:', err)
+  }
+}
+
 
 function slap() {
   store.slap()
@@ -75,6 +105,7 @@ async function sendSlaps(count: number) {
 
     if (res.ok) {
       store.markSubmitted()
+      console.log(`✅ Successfully submitted ${count} slaps`)
     } else {
       console.warn('⚠️ Failed to submit slaps')
     }
@@ -123,13 +154,21 @@ function handleVisibilityChange() {
 onMounted(() => {
   fetchUserId()
   fetchGlobalSlaps()
-  interval = setInterval(fetchGlobalSlaps, 15000)
+  fetchRankAndTotal()
+  interval = setInterval(() => {
+    fetchGlobalSlaps()
+    fetchRankAndTotal()
+  }, 6000)
   document.addEventListener('visibilitychange', handleVisibilityChange)
 })
 
 onUnmounted(() => {
   clearInterval(interval)
   document.removeEventListener('visibilitychange', handleVisibilityChange)
+})
+
+watch(() => store.userId, (newId: string) => {
+  if (newId) fetchRankAndTotal()
 })
 
 </script>
