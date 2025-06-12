@@ -1,19 +1,17 @@
 <template>
-  <div class="container mx-auto text-center p-5">
-    <div class="flex flex-col items-center">
-      <SlapImage
-        :image="currentImage"
-        :isClicked="isCursorClicked"
-        @slap="slap"
-      />
+  <div class="flex flex-col items-center">
+    <SlapImage
+      :image="currentImage"
+      :isClicked="isCursorClicked"
+      @slap="slap"
+    />
 
-      <SlapStats
-        :storeCount="formattedStoreCount"
-        :globalSlaps="formattedGlobalSlaps"
-        :rank="formattedRank"
-        :totalUsers="formattedTotalUsers"
-      />
-    </div>
+    <SlapStats
+      :storeCount="formattedStoreCount"
+      :globalSlaps="formattedGlobalSlaps"
+      :rank="formattedRank"
+      :totalUsers="formattedTotalUsers"
+    />
   </div>
 </template>
 

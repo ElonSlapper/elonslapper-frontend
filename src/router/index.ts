@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '@/views/HomeView.vue'
 import NotFound from '@/views/NotFound.vue'
 import AboutView from '@/views/AboutView.vue'
+import SettingsView from '@/views/SettingsView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -15,6 +16,11 @@ const router = createRouter({
       path: '/about',
       name: 'About',
       component: AboutView,
+    },
+    {
+      path: '/settings',
+      name: 'Settings',
+      component: SettingsView,
     },
     // Catch-all 404 route
     {
