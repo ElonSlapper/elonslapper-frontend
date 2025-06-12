@@ -10,6 +10,14 @@
       <p class="text-xs text-gray-500 dark:text-gray-500 font-mono">
         v{{ version }}
       </p>
+
+      <div class="text-xs space-x-4 text-gray-500 dark:text-gray-500">
+        <a href="/" class="underline hover:text-gray-700 dark:hover:text-gray-300">Home</a>
+        <a href="/about" class="underline hover:text-gray-700 dark:hover:text-gray-300">About</a>
+        <button @click="refresh" class="underline hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer">
+          Refresh
+        </button>
+      </div>
     </div>
   </footer>
 </template>
@@ -19,4 +27,8 @@ import pkg from '../../../package.json'
 
 const date = new Date().getFullYear()
 const version = pkg.version
+
+function refresh() {
+  window.location.reload()
+}
 </script>

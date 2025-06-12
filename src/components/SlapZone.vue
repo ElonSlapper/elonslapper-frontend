@@ -5,7 +5,7 @@
         :src="currentImage"
         alt="Elon Musk"
         :class="[
-          'w-80 h-80 rounded-full mb-6 transition duration-200 touch-manipulation',
+          'w-80 h-80 rounded-full mb-6 transition duration-200 touch-manipulation select-none pointer-events-auto',
           isCursorClicked ? 'cursor-clicked' : 'custom-cursor'
         ]"
         @click="slap"
@@ -27,6 +27,10 @@
       <div class="my-10">
         Your rank is <span class="font-mono">{{ formattedRank }}</span> out of <span class="font-mono">{{ formattedTotalUsers }}</span> users.
       </div>
+
+
+      <!-- Refresh Button -->
+
     </div>
   </div>
 </template>
@@ -64,9 +68,9 @@ async function fetchRankAndTotal() {
   try {
     const res = await fetch(`${API_BASE_URL}/slaps/rank/?user_id=${store.userId}`)
     const data = await res.json()
-    if (res.ok && data.rank !== undefined && data.total_users !== undefined) {
-      store.setRank(data.rank)
-      store.setTotalUsers(data.total_users)
+    if (res.ok && data.rank !== undefined) {
+      store.setRank(data.rank.rank)
+      store.setTotalUsers(data.rank.total)
       console.log('🔢 Rank & total users updated:', data)
     }
   } catch (err) {
@@ -151,16 +155,27 @@ function handleVisibilityChange() {
   }
 }
 
+let fetching = false;
+
+async function periodicFetch() {
+  if (fetching) return;
+  fetching = true;
+  try {
+    await fetchGlobalSlaps();
+    await fetchRankAndTotal();
+  } catch (e) {
+    console.error('Periodic fetch error:', e);
+  } finally {
+    fetching = false;
+  }
+}
+
 onMounted(() => {
-  fetchUserId()
-  fetchGlobalSlaps()
-  fetchRankAndTotal()
-  interval = setInterval(() => {
-    fetchGlobalSlaps()
-    fetchRankAndTotal()
-  }, 6000)
-  document.addEventListener('visibilitychange', handleVisibilityChange)
-})
+  fetchUserId();
+  periodicFetch();
+  interval = setInterval(periodicFetch, 6000);
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+});
 
 onUnmounted(() => {
   clearInterval(interval)
