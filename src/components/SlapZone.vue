@@ -167,9 +167,6 @@ onUnmounted(() => {
   document.removeEventListener('visibilitychange', handleVisibilityChange)
 })
 
-watch(() => store.userId, (newId: string) => {
-  if (newId) fetchRankAndTotal()
-})
 
 </script>
 
