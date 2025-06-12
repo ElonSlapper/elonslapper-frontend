@@ -1,42 +1,26 @@
 <template>
   <div class="container mx-auto text-center p-5">
     <div class="flex flex-col items-center">
-      <img
-        :src="currentImage"
-        alt="Elon Musk"
-        :class="[
-          'w-80 h-80 rounded-full mb-6 transition duration-200 touch-manipulation select-none pointer-events-auto',
-          isCursorClicked ? 'cursor-clicked' : 'custom-cursor'
-        ]"
-        @click="slap"
+      <SlapImage
+        :image="currentImage"
+        :isClicked="isCursorClicked"
+        @slap="slap"
       />
 
-      <p class="mt-4 text-lg">
-        You've slapped Elon
-        <span class="font-mono font-bold text-red-800">{{ formattedStoreCount }}</span>
-        times.
-      </p>
-
-      <div class="my-20">
-        <p class="text-md text-gray-700">Global Slaps</p>
-        <p>
-          <span class="text-xl font-mono">{{ formattedGlobalSlaps }}</span>
-        </p>
-      </div>
-
-      <div class="my-10">
-        Your rank is <span class="font-mono">{{ formattedRank }}</span> out of <span class="font-mono">{{ formattedTotalUsers }}</span> users.
-      </div>
-
-
-      <!-- Refresh Button -->
-
+      <SlapStats
+        :storeCount="formattedStoreCount"
+        :globalSlaps="formattedGlobalSlaps"
+        :rank="formattedRank"
+        :totalUsers="formattedTotalUsers"
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import SlapImage from './SlapImage.vue'
+import SlapStats from './SlapStats.vue'
 import { useSlapStore } from '@/stores/slap'
 import elonImage from '@/assets/elon.jpg'
 import slappedImage from '@/assets/slapped.jpg'
@@ -52,33 +36,14 @@ let interval: ReturnType<typeof setInterval>
 // Computed
 const formattedStoreCount = computed(() => store.count.toLocaleString())
 const formattedGlobalSlaps = computed(() => store.globalSlaps.toLocaleString())
-
 const formattedRank = computed(() =>
   store.rank > 0 ? store.rank.toLocaleString() : '—'
 )
-
 const formattedTotalUsers = computed(() =>
   store.totalUsers > 0 ? store.totalUsers.toLocaleString() : '—'
 )
 
-
-
-async function fetchRankAndTotal() {
-  if (!store.userId) return
-  try {
-    const res = await fetch(`${API_BASE_URL}/slaps/rank/?user_id=${store.userId}`)
-    const data = await res.json()
-    if (res.ok && data.rank !== undefined) {
-      store.setRank(data.rank.rank)
-      store.setTotalUsers(data.rank.total)
-      console.log('🔢 Rank & total users updated:', data)
-    }
-  } catch (err) {
-    console.error('❌ Error fetching rank and total users:', err)
-  }
-}
-
-
+// Image slap + debounce logic
 function slap() {
   store.slap()
   debounceSendSlaps()
@@ -106,13 +71,7 @@ async function sendSlaps(count: number) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ slap_count: count, user_id: store.userId }),
     })
-
-    if (res.ok) {
-      store.markSubmitted()
-      console.log(`✅ Successfully submitted ${count} slaps`)
-    } else {
-      console.warn('⚠️ Failed to submit slaps')
-    }
+    if (res.ok) store.markSubmitted()
   } catch (err) {
     console.error('❌ Error sending slaps:', err)
   }
@@ -137,65 +96,56 @@ async function fetchGlobalSlaps() {
     const data = await res.json()
     if (data.count !== undefined) {
       store.setGlobalSlaps(data.count)
-      console.log('🌍 Global slaps updated:', data.count)
     }
   } catch (err) {
     console.error('❌ Error fetching global slaps:', err)
   }
 }
 
-function handleVisibilityChange() {
-  if (document.hidden) {
-    clearInterval(interval)
-    console.log('⏸️ Polling paused (tab hidden)')
-  } else {
-    fetchGlobalSlaps()
-    interval = setInterval(fetchGlobalSlaps, 15000)
-    console.log('▶️ Polling resumed (tab visible)')
+async function fetchRankAndTotal() {
+  if (!store.userId) return
+  try {
+    const res = await fetch(`${API_BASE_URL}/slaps/rank/?user_id=${store.userId}`)
+    const data = await res.json()
+    if (res.ok && data.rank !== undefined) {
+      store.setRank(data.rank.rank)
+      store.setTotalUsers(data.rank.total)
+    }
+  } catch (err) {
+    console.error('❌ Error fetching rank and total users:', err)
   }
 }
 
-let fetching = false;
+function handleVisibilityChange() {
+  if (document.hidden) {
+    clearInterval(interval)
+  } else {
+    fetchGlobalSlaps()
+    interval = setInterval(periodicFetch, 15000)
+  }
+}
 
+let fetching = false
 async function periodicFetch() {
-  if (fetching) return;
-  fetching = true;
+  if (fetching) return
+  fetching = true
   try {
-    await fetchGlobalSlaps();
-    await fetchRankAndTotal();
-  } catch (e) {
-    console.error('Periodic fetch error:', e);
+    await fetchGlobalSlaps()
+    await fetchRankAndTotal()
   } finally {
-    fetching = false;
+    fetching = false
   }
 }
 
 onMounted(() => {
-  fetchUserId();
-  periodicFetch();
-  interval = setInterval(periodicFetch, 6000);
-  document.addEventListener('visibilitychange', handleVisibilityChange);
-});
+  fetchUserId()
+  periodicFetch()
+  interval = setInterval(periodicFetch, 6000)
+  document.addEventListener('visibilitychange', handleVisibilityChange)
+})
 
 onUnmounted(() => {
   clearInterval(interval)
   document.removeEventListener('visibilitychange', handleVisibilityChange)
 })
-
-
 </script>
-
-
-<style scoped>
-img {
-  object-fit: cover;
-}
-
-.custom-cursor {
-  cursor: url('/cursor.png') 16 16, pointer;
-}
-
-.cursor-clicked {
-  cursor: url('/cursor-slap.png') 16 16, pointer;
-}
-</style>
