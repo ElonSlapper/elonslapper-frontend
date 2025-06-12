@@ -1,3 +1,8 @@
+<script setup lang="ts">
+import MainButton from '@/components/MainButton.vue';
+
+</script>
+
 <template>
 <div>
   <div class="px-4 sm:px-0">
@@ -16,12 +21,8 @@
       <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
         <dt class="text-sm/6 font-medium text-gray-900">Actions</dt>
         <dd class="mt-2 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
-          <button
-            class="inline-flex items-center px-4 py-2 border border-transparent text-sm/6 font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            @click="$emit('reset')"
-          >
-            Reset App
-          </button>
+          <MainButton>Refresh</MainButton>
+          <MainButton variant="danger">Delete all data</MainButton>
         </dd>
       </div>
     </dl>
