@@ -1,35 +1,38 @@
 <script setup lang="ts">
-function donate() {
-  // Replace with your real donation URL or logic
-  window.open('https://www.paypal.com/donate', '_blank')
-}
+
 </script>
 
 <template>
-  <main class="bg-white text-gray-700">
-    <section class="max-w-3xl mx-auto space-y-8">
-      <h1 class="text-3xl sm:text-4xl font-semibold tracking-tight text-left text-gray-900">
-        About Us
-      </h1>
-      <p class="text-lg leading-relaxed text-left">
-        Slap Elon is a simple, fun project created to bring a bit of lighthearted relief and community connection to anyone who needs it. We believe in playfulness and shared moments of joy in the digital age.
-      </p>
-
-      <section class="pt-8 border-t border-gray-200 max-w-xs">
-        <h2 class="text-xl font-medium mb-4 text-gray-800 text-left">
-          Support Us
-        </h2>
-        <p class="text-sm text-gray-600 mb-6 text-left">
-          If you enjoy Slap Elon, consider supporting us to keep the project running and evolving.
-        </p>
-        <button
-          class="w-full rounded-md bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 transition"
-          @click="donate"
-          aria-label="Donate to Slap Elon"
-        >
-          Donate
-        </button>
-      </section>
-    </section>
-  </main>
+  <div class="mx-auto max-w-7xl px-6 sm:mt-20 lg:px-8">
+        <div class="mx-auto max-w-2xl lg:mx-0">
+          <h2 class="text-4xl font-semibold tracking-tight text-pretty text-gray-900 sm:text-5xl">About</h2>
+          <p class="mt-6 text-lg/8 text-gray-600">ElonSlapper is a fun little project that simply allows you to slap Elon.</p>
+        </div>
+        <dl class="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 text-base/7 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-3">
+          <div>
+            <dt class="font-semibold text-gray-900">Be world-class</dt>
+            <dd class="mt-1 text-gray-600">Aut illo quae. Ut et harum ea animi natus. Culpa maiores et sed sint et magnam exercitationem quia. Ullam voluptas nihil vitae dicta molestiae et. Aliquid velit porro vero.</dd>
+          </div>
+          <div>
+            <dt class="font-semibold text-gray-900">Share everything you know</dt>
+            <dd class="mt-1 text-gray-600">Mollitia delectus a omnis. Quae velit aliquid. Qui nulla maxime adipisci illo id molestiae. Cumque cum ut minus rerum architecto magnam consequatur. Quia quaerat minima.</dd>
+          </div>
+          <div>
+            <dt class="font-semibold text-gray-900">Always learning</dt>
+            <dd class="mt-1 text-gray-600">Aut repellendus et officiis dolor possimus. Deserunt velit quasi sunt fuga error labore quia ipsum. Commodi autem voluptatem nam. Quos voluptatem totam.</dd>
+          </div>
+          <div>
+            <dt class="font-semibold text-gray-900">Be supportive</dt>
+            <dd class="mt-1 text-gray-600">Magnam provident veritatis odit. Vitae eligendi repellat non. Eum fugit impedit veritatis ducimus. Non qui aspernatur laudantium modi. Praesentium rerum error deserunt harum.</dd>
+          </div>
+          <div>
+            <dt class="font-semibold text-gray-900">Take responsibility</dt>
+            <dd class="mt-1 text-gray-600">Sit minus expedita quam in ullam molestiae dignissimos in harum. Tenetur dolorem iure. Non nesciunt dolorem veniam necessitatibus laboriosam voluptas perspiciatis error.</dd>
+          </div>
+          <div>
+            <dt class="font-semibold text-gray-900">Enjoy downtime</dt>
+            <dd class="mt-1 text-gray-600">Ipsa in earum deserunt aut. Quos minus aut animi et soluta. Ipsum dicta ut quia eius. Possimus reprehenderit iste aspernatur ut est velit consequatur distinctio.</dd>
+          </div>
+        </dl>
+  </div>
 </template>
