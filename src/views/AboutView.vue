@@ -43,7 +43,7 @@ import BackButton from '@/components/BackButton.vue';
       </div>
 
       <div>
-        <dt class="font-semibold text-gray-900">Free forever</dt>
+        <dt class="font-semibold text-gray-900">Free</dt>
         <dd class="mt-1 text-gray-600">
           There are no subscriptions, ads, or upgrades. It’s just a slap button with a leaderboard. That's it.
         </dd>
@@ -54,7 +54,7 @@ import BackButton from '@/components/BackButton.vue';
         <dd class="mt-1 text-gray-600">
           If you like this app and want to support its development, you can buy me a coffee. It helps keep the servers running and the slaps coming. <br>
           <a
-            href="https://www.buymeacoffee.com/yourusername"
+            href="https://coff.ee/angus_turtle"
             target="_blank"
             rel="noopener noreferrer"
             class="block mt-2 inline-block text-yellow-600 underline hover:text-yellow-700 transition"
