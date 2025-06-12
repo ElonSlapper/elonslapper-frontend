@@ -3,6 +3,7 @@ import MainButton from '@/components/MainButton.vue'
 import pkg from '../../package.json'
 import { useSlapStore } from '@/stores/slap'
 import { onMounted, ref } from 'vue'
+import BackButton from '@/components/BackButton.vue';
 
 const store = useSlapStore()
 
@@ -29,6 +30,7 @@ function clearAllData() {
 </script>
 
 <template>
+  <BackButton page="Settings" class="mb-10" />
   <div>
     <div class="px-4 sm:px-0">
       <h1 class="text-4xl font-semibold tracking-tight text-pretty text-gray-900 sm:text-5xl">Settings</h1>
