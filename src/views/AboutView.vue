@@ -2,9 +2,9 @@
 </script>
 
 <template>
-  <div class="mx-auto max-w-7xl px-6 sm:mt-20 lg:px-8">
+  <div class="mx-auto">
     <div class="mx-auto max-w-2xl lg:mx-0">
-      <h2 class="text-4xl font-semibold tracking-tight text-pretty text-gray-900 sm:text-5xl">About</h2>
+      <h1 class="text-4xl font-semibold tracking-tight text-pretty text-gray-900 sm:text-5xl">About</h1>
       <p class="mt-6 text-lg/8 text-gray-600">
         ElonSlapper is a small, light-hearted app that lets you slap Elon.
       </p>
@@ -14,7 +14,7 @@
       <div>
         <dt class="font-semibold text-gray-900">Built for fun</dt>
         <dd class="mt-1 text-gray-600">
-          This app doesn’t change the world, but it might change your mood. Slap a billionaire and enjoy it.
+          Slap Elon with a single click. It’s a simple.
         </dd>
       </div>
 
@@ -49,7 +49,7 @@
       <div>
         <dt class="font-semibold text-gray-900">Support it?</dt>
         <dd class="mt-1 text-gray-600">
-          If you like this app and want to support its development, you can buy me a coffee. It helps keep the servers running and the slaps coming.
+          If you like this app and want to support its development, you can buy me a coffee. It helps keep the servers running and the slaps coming. <br>
           <a
             href="https://www.buymeacoffee.com/yourusername"
             target="_blank"

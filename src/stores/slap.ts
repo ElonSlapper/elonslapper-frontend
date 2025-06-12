@@ -36,6 +36,18 @@ export const useSlapStore = defineStore('slap', {
     setTotalUsers(total: number) {
       this.totalUsers = total
       localStorage.setItem('totalUsers', total.toString())
+    },
+    getUserId(): string | null {
+      return this.userId
+    },
+    reset() {
+      this.count = 0
+      this.userId = null
+      this.lastSubmittedCount = 0
+      this.globalSlaps = 0
+      this.rank = 0
+      this.totalUsers = 0
+      localStorage.clear()
     }
   }
 })
