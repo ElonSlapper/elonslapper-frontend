@@ -1,5 +1,6 @@
 <template>
-  <div class="flex flex-col items-center">
+  <div class="flex flex-col items-center gap-y-10">
+    <GlobalCount :globalSlaps="formattedGlobalSlaps" />
     <SlapImage
       :image="currentImage"
       :isClicked="isCursorClicked"
@@ -8,7 +9,6 @@
 
     <SlapStats
       :storeCount="formattedStoreCount"
-      :globalSlaps="formattedGlobalSlaps"
       :rank="formattedRank"
       :totalUsers="formattedTotalUsers"
     />
@@ -19,6 +19,8 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import SlapImage from './SlapImage.vue'
 import SlapStats from './SlapStats.vue'
+import GlobalCount from './GlobalCount.vue'
+
 import { useSlapStore } from '@/stores/slap'
 import elonImage from '@/assets/elon.jpg'
 import slappedImage from '@/assets/slapped.jpg'

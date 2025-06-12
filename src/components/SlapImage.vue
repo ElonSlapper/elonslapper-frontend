@@ -3,7 +3,7 @@
     :src="image"
     alt="Elon"
     :class="[
-      'w-80 h-80 rounded-full mb-6 transition duration-200 touch-manipulation select-none pointer-events-auto stop-long-press',
+      'h-70 w-70 md:w-80 md:h-80 rounded-full transition duration-200 touch-manipulation select-none pointer-events-auto stop-long-press',
       isClicked ? 'cursor-clicked' : 'custom-cursor'
     ]"
     @click="onClick"
