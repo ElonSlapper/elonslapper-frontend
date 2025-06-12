@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col items-center gap-y-10">
+  <div class="flex flex-col items-center gap-y-5 md:gap-y-10">
     <GlobalCount :globalSlaps="formattedGlobalSlaps" />
     <SlapImage
       :image="currentImage"

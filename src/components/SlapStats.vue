@@ -1,8 +1,8 @@
 <template>
   <div class="text-center">
-    <dl class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-3">
+    <dl class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
       <!-- Your Slaps -->
-      <div class="overflow-hiddenp-2 p-4  rounded-lg">
+      <div class="overflow-hiddenp-2 p-2 md:p-4  rounded-lg">
         <dt class="truncate text-sm font-medium text-gray-500">Your slaps</dt>
         <dd class="mt-1 font-mono lg:text-xl tracking-tight text-red-900">
           <div class="overflow-x-auto whitespace-nowrap max-w-full scrollbar-thin">
@@ -12,7 +12,7 @@
       </div>
 
       <!-- Rank -->
-      <div class="overflow-hidden p-4 rounded-lg">
+      <div class="overflow-hidden p-2 md:p-4 rounded-lg">
         <dt class="truncate text-sm font-medium text-gray-500">Your Rank</dt>
         <dd class="mt-1 font-mono lg:text-xl tracking-tight text-gray-900">
           <div class="overflow-x-auto whitespace-nowrap max-w-full scrollbar-thin">
