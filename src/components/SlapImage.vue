@@ -1,7 +1,7 @@
 <template>
   <img
     :src="image"
-    alt="Elon Musk"
+    alt="Elon"
     :class="[
       'w-80 h-80 rounded-full mb-6 transition duration-200 touch-manipulation select-none pointer-events-auto stop-long-press',
       isClicked ? 'cursor-clicked' : 'custom-cursor'
