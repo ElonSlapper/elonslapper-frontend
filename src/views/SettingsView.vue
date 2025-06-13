@@ -9,11 +9,13 @@ const store = useSlapStore()
 
 const version = ref('unknown')
 const userId = ref('unknown')
+const schemaVersion = ref('unknown')
 
 // On mount, check for updates
 onMounted(() => {
   version.value = pkg.version || 'unknown'
   userId.value = store.getUserId() || 'unknown'
+  schemaVersion.value = store.getSchemaVersion() || 'unknown'
 })
 
 function forceUpdate() {
@@ -40,6 +42,10 @@ function clearAllData() {
         <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
           <dt class="text-sm/6 font-medium text-gray-900">App Version</dt>
           <dd class="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0 font-mono">{{ version }}</dd>
+        </div>
+        <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+          <dt class="text-sm/6 font-medium text-gray-900">Schema Version</dt>
+          <dd class="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0 font-mono">{{ schemaVersion }}</dd>
         </div>
         <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
           <dt class="text-sm/6 font-medium text-gray-900">Device ID</dt>

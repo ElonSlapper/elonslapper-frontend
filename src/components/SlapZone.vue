@@ -106,37 +106,40 @@ async function fetchUserId() {
     const data = await res.json()
     if (res.ok && data.user_id) {
       store.setUserId(data.user_id)
+    }else{
+      console.error('❌ Failed to create user ID:', data)
     }
   } catch (err) {
     console.error('❌ Failed to fetch user ID:', err)
   }
 }
 
-async function fetchGlobalSlaps() {
+async function fetchStats() {
+  if (!store.userId) return
   try {
-    const res = await fetch(`${API_BASE_URL}/slaps/global-count`)
+    const res = await fetch(`${API_BASE_URL}/slaps/stats?user_id=${store.userId}`)
     const data = await res.json()
-    if (data.count !== undefined) {
-      store.setGlobalSlaps(data.count)
+
+    if (res.ok) {
+      if (data.global_count !== undefined) {
+        store.setGlobalSlaps(data.global_count)
+      }
+      else{
+        console.warn('⚠️ Global count not found in response')
+      }
+      if (data.rank !== undefined) {
+        // Get rank and total out of the data
+        store.setTotalUsers(data.rank.total)
+        store.setRank(data.rank.rank)
+      }else{
+        console.warn('⚠️ Rank not found in response')
+      }
     }
   } catch (err) {
-    console.error('❌ Error fetching global slaps:', err)
+    console.error('❌ Error fetching slap stats:', err)
   }
 }
 
-async function fetchRankAndTotal() {
-  if (!store.userId) return
-  try {
-    const res = await fetch(`${API_BASE_URL}/slaps/rank/?user_id=${store.userId}`)
-    const data = await res.json()
-    if (res.ok && data.rank !== undefined) {
-      store.setRank(data.rank.rank)
-      store.setTotalUsers(data.rank.total)
-    }
-  } catch (err) {
-    console.error('❌ Error fetching rank and total users:', err)
-  }
-}
 
 function handleVisibilityChange() {
   if (document.hidden) {
@@ -151,8 +154,7 @@ async function periodicFetch() {
   if (fetching) return
   fetching = true
   try {
-    await fetchGlobalSlaps()
-    await fetchRankAndTotal()
+    await fetchStats()
   } finally {
     fetching = false
   }

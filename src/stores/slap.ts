@@ -41,6 +41,9 @@ export const useSlapStore = defineStore('slap', {
     reset() {
       this.$reset() // resets to initial state
     },
+    getSchemaVersion(): number {
+      return this.schemaVersion
+    }
   },
 
   persist: {
