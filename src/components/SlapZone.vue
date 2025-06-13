@@ -17,6 +17,27 @@
       </div>
     </div>
 
+    <div v-if="requiresUpdate" class="rounded-md bg-blue-50 p-4">
+      <div class="flex">
+        <div class="shrink-0">
+          <svg class="size-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" data-slot="icon">
+            <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495ZM10 5a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 10 5Zm0 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <div class="ml-3">
+          <h3 class="text-sm font-medium text-blue-800">App update</h3>
+          <div class="mt-2 text-sm text-blue-700">
+            <p>Refresh to update app to the latest version</p>
+          </div>
+          <div class="mt-4">
+            <div class="-mx-2 -my-1.5 flex">
+              <button @click="refreshApp" type="button" class="cursor-pointer rounded-md bg-blue-50 px-2 py-1.5 text-sm font-medium text-blue-800 hover:bg-blue-100 focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-blue-50 focus:outline-hidden">Refresh</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <GlobalCount :globalSlaps="formattedGlobalSlaps" />
     <SlapImage
       :image="currentImage"
@@ -49,6 +70,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 const currentImage = ref(elonImage)
 const isCursorClicked = ref(false)
 const isOnline = ref(navigator.onLine)
+const requiresUpdate = ref(false)
 let timeout: ReturnType<typeof setTimeout> | null = null
 let interval: ReturnType<typeof setInterval>
 
@@ -74,6 +96,11 @@ function slap() {
     currentImage.value = elonImage
     isCursorClicked.value = false
   }, 100)
+}
+
+function refreshApp() {
+  requiresUpdate.value = false
+  window.location.reload()
 }
 
 function debounceSendSlaps() {
@@ -125,7 +152,6 @@ async function fetchStats() {
     })
 
     const res = await fetch(`${API_BASE_URL}/slaps/stats?${params.toString()}`)
-
     const data = await res.json()
 
     if (res.ok) {
@@ -141,6 +167,12 @@ async function fetchStats() {
         store.setRank(data.rank.rank)
       }else{
         console.warn('⚠️ Rank not found in response')
+      }
+      if (data.update !== undefined){
+        requiresUpdate.value = data.update
+      }
+      else{
+        console.warn('⚠️ Update flag not found in response')
       }
     }
   } catch (err) {
