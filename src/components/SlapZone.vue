@@ -85,14 +85,24 @@ const formattedTotalUsers = computed(() =>
 )
 const appVersion = getAppVersion()
 
-// Image slap + debounce logic
+// Slap timeout to reset image
+let slapTimeout = 0
+
 function slap() {
   store.slap()
   debounceSendSlaps()
 
-  currentImage.value = slappedImage
-  isCursorClicked.value = true
-  setTimeout(() => {
+  // Only reset timeout if not already in the slapped state
+  if (!isCursorClicked.value) {
+    currentImage.value = slappedImage
+    isCursorClicked.value = true
+  }
+
+  // Clear previous timeout if still pending
+  clearTimeout(slapTimeout)
+
+  // Reset image after 100ms (restart every time)
+  slapTimeout = setTimeout(() => {
     currentImage.value = elonImage
     isCursorClicked.value = false
   }, 100)
