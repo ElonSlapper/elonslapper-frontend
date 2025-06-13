@@ -53,7 +53,7 @@ function slap() {
   setTimeout(() => {
     currentImage.value = elonImage
     isCursorClicked.value = false
-  }, 150)
+  }, 100)
 }
 
 function debounceSendSlaps() {
