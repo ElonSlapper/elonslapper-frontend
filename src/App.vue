@@ -10,7 +10,7 @@ import MainLayout from '@/views/MainLayout.vue';
 
         <main class="flex-grow">
             <MainLayout>
-              <RouterView class="" />
+              <RouterView />
             </MainLayout>
         </main>
 
