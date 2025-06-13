@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import MainButton from '@/components/MainButton.vue'
-import pkg from '../../package.json'
 import { useSlapStore } from '@/stores/slap'
 import { onMounted, ref } from 'vue'
 import BackButton from '@/components/BackButton.vue';
+import { getAppVersion } from '@/util/version'
 
 const store = useSlapStore()
 
@@ -13,7 +13,7 @@ const schemaVersion = ref('unknown')
 
 // On mount, check for updates
 onMounted(() => {
-  version.value = pkg.version || 'unknown'
+  version.value = getAppVersion()
   userId.value = store.getUserId() || 'unknown'
   schemaVersion.value = store.getSchemaVersion()?.toString() || 'unknown'
 })

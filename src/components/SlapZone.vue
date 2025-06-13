@@ -41,6 +41,7 @@ import GlobalCount from './GlobalCount.vue'
 import { useSlapStore } from '@/stores/slap'
 import elonImage from '@/assets/elon.jpg'
 import slappedImage from '@/assets/slapped.jpg'
+import { getAppVersion } from '@/util/version'
 
 const store = useSlapStore()
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
@@ -60,6 +61,7 @@ const formattedRank = computed(() =>
 const formattedTotalUsers = computed(() =>
   store.totalUsers > 0 ? store.totalUsers.toLocaleString() : '—'
 )
+const appVersion = getAppVersion()
 
 // Image slap + debounce logic
 function slap() {
@@ -117,7 +119,13 @@ async function fetchUserId() {
 async function fetchStats() {
   if (!store.userId) return
   try {
-    const res = await fetch(`${API_BASE_URL}/slaps/stats?user_id=${store.userId}`)
+    const params = new URLSearchParams({
+      user_id: store.userId || '',
+      app_version: appVersion,
+    })
+
+    const res = await fetch(`${API_BASE_URL}/slaps/stats?${params.toString()}`)
+
     const data = await res.json()
 
     if (res.ok) {
