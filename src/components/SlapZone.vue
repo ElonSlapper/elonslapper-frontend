@@ -1,6 +1,7 @@
 <template>
   <div class="flex flex-col items-center gap-y-5 md:gap-y-10">
-    <div class="rounded-md bg-red-50 p-4">
+
+    <div v-if="!isOnline" class="rounded-md bg-red-50 p-4">
       <div class="flex">
         <div class="shrink-0">
           <svg class="size-5 text-red-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" data-slot="icon">
@@ -141,7 +142,6 @@ function handleVisibilityChange() {
   if (document.hidden) {
     clearInterval(interval)
   } else {
-    fetchGlobalSlaps()
     interval = setInterval(periodicFetch, 15000)
   }
 }
