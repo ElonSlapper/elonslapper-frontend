@@ -23,7 +23,7 @@ export function migrateLegacySlapStore() {
     localStorage.setItem('slap', JSON.stringify(migratedState))
 
     // Optional: clean up old keys
-    localStorage.removeItem('count')
+    localStorage.removeItem('slapCount')
     localStorage.removeItem('userId')
     localStorage.removeItem('lastSubmittedCount')
     localStorage.removeItem('globalSlaps')

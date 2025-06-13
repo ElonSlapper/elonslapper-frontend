@@ -15,7 +15,7 @@ const schemaVersion = ref('unknown')
 onMounted(() => {
   version.value = pkg.version || 'unknown'
   userId.value = store.getUserId() || 'unknown'
-  schemaVersion.value = store.getSchemaVersion() || 'unknown'
+  schemaVersion.value = store.getSchemaVersion()?.toString() || 'unknown'
 })
 
 function forceUpdate() {
