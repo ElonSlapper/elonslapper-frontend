@@ -78,11 +78,11 @@ const currentImage = ref(elonImage)
 const isCursorClicked = ref(false)
 const isOnline = ref(navigator.onLine)
 const requiresUpdate = ref(false)
-const isLoading = ref(true)
 
 let timeout: ReturnType<typeof setTimeout> | null = null
 let interval: ReturnType<typeof setInterval>
 let fetching = false
+let isSending = false
 
 const isFetching = ref(true)      // Core data fetch state
 const showSpinner = ref(false)    // Only show spinner if loading takes long
@@ -132,27 +132,43 @@ function refreshApp() {
 }
 
 function debounceSendSlaps() {
+  const unsent = store.getUnsentSlaps()
+
+  // If we've reached the threshold, send immediately
+  if (unsent >= 50) {
+    if (timeout) clearTimeout(timeout)
+    void sendSlaps(unsent)
+    return
+  }
+
+  // Debounced send
   if (timeout) clearTimeout(timeout)
   timeout = setTimeout(() => {
-    const unsent = store.getUnsentSlaps()
-    if (unsent > 0) sendSlaps(unsent)
+    const unsentNow = store.getUnsentSlaps()
+    if (unsentNow > 0) void sendSlaps(unsentNow)
   }, 2000)
 }
 
 async function sendSlaps(count: number) {
+  if (isSending) return
+  isSending = true
+
   try {
     const res = await fetch(`${API_BASE_URL}/slaps/update`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ slap_count: count, user_id: store.userId }),
     })
-    if (res.ok){
+    if (res.ok) {
       store.markSubmitted()
       console.log(`✅ Sent ${count} slaps successfully!`)
+    } else {
+      console.error(`❌ Failed to send slaps: ${res.status}`)
     }
-
   } catch (err) {
     console.error('❌ Error sending slaps:', err)
+  } finally {
+    isSending = false
   }
 }
 
