@@ -2,10 +2,21 @@ import { defineStore } from 'pinia'
 
 const CURRENT_SCHEMA_VERSION = 2
 
+interface SlapState {
+  count: number
+  userId: string | null
+  lastSyncedCount: number
+  globalSlaps: number
+  rank: number
+  totalUsers: number
+  nextClosestCount: number | null
+  schemaVersion: number
+}
+
 export const useSlapStore = defineStore('slap', {
-  state: () => ({
+  state: (): SlapState => ({
     count: 0,
-    userId: null as string | null,
+    userId: null,
     lastSyncedCount: 0,  // checkpoint of last sync
     globalSlaps: 0,
     rank: 0,
@@ -38,7 +49,7 @@ export const useSlapStore = defineStore('slap', {
     setTotalUsers(total: number) {
       this.totalUsers = total
     },
-    setNextClosestCount(count: number) {
+    setNextClosestCount(count: number | null) {
       this.nextClosestCount = count
     },
     getUserId(): string | null {
@@ -49,7 +60,7 @@ export const useSlapStore = defineStore('slap', {
     },
     getSchemaVersion(): number {
       return this.schemaVersion
-    }
+    },
   },
 
   persist: {
