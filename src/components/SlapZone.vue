@@ -38,7 +38,7 @@
       </div>
     </div>
 
-    <div v-if="isLoading" class="aspect-square w-50">
+    <div v-if="isFetching && showSpinner" class="aspect-square w-50">
       <LoadingElon class="" />
     </div>
 
@@ -82,6 +82,10 @@ const isLoading = ref(true)
 
 let timeout: ReturnType<typeof setTimeout> | null = null
 let interval: ReturnType<typeof setInterval>
+let fetching = false
+
+const isFetching = ref(true)      // Core data fetch state
+const showSpinner = ref(false)    // Only show spinner if loading takes long
 
 // Computed
 const formattedStoreCount = computed(() => store.count.toLocaleString())
@@ -213,7 +217,6 @@ function handleVisibilityChange() {
   }
 }
 
-let fetching = false
 async function periodicFetch() {
   if (fetching) return
   fetching = true
@@ -237,12 +240,25 @@ function handleOffline() {
   console.log('🔴 Offline')
 }
 
+
 async function fetchInitialData() {
-  isLoading.value = true
-  await fetchUserId()
-  await fetchStats()
-  isLoading.value = false
+  isFetching.value = true
+  showSpinner.value = false
+
+  const spinnerTimer = setTimeout(() => {
+    showSpinner.value = true
+  }, 100)
+
+  try {
+    await fetchUserId()
+    await fetchStats()
+  } finally {
+    clearTimeout(spinnerTimer)
+    isFetching.value = false
+    showSpinner.value = false
+  }
 }
+
 
 
 onMounted(() => {
