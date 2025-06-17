@@ -84,10 +84,9 @@ let interval: ReturnType<typeof setInterval>
 let fetching = false
 let isSending = false
 
-const isFetching = ref(true)      // Core data fetch state
-const showSpinner = ref(false)    // Only show spinner if loading takes long
+const isFetching = ref(true)
+const showSpinner = ref(false)
 
-// Computed
 const formattedStoreCount = computed(() => store.count.toLocaleString())
 const formattedGlobalSlaps = computed(() => store.globalSlaps.toLocaleString())
 const formattedRank = computed(() =>
@@ -98,19 +97,29 @@ const formattedTotalUsers = computed(() =>
 )
 const appVersion = getAppVersion()
 
-// Slap timeout to reset image
 let slapTimeout = 0
 let lastSlapTime = 0
 
 function slap() {
   store.slap()
-  debounceSendSlaps()
+
+  const unsynced = store.getUnsyncedSlaps()
+
+  // Sync immediately if 50 or more new slaps since last sync
+  if (unsynced >= 50) {
+    if (timeout) {
+      clearTimeout(timeout)
+      timeout = null
+    }
+    void sendSlaps()
+  } else {
+    debounceSendSlaps()
+  }
 
   const now = Date.now()
   const timeSinceLastSlap = now - lastSlapTime
   lastSlapTime = now
 
-  // Choose animation duration
   const fastSlap = timeSinceLastSlap < 300
   const animationDuration = fastSlap ? 80 : 200
 
@@ -125,51 +134,45 @@ function slap() {
   }, animationDuration)
 }
 
+function debounceSendSlaps() {
+  if (timeout) clearTimeout(timeout)
+  timeout = setTimeout(() => {
+    void sendSlaps()
+  }, 2000)
+}
+
+async function sendSlaps() {
+  if (isSending) return
+  isSending = true
+
+  const unsynced = store.getUnsyncedSlaps()
+  if (unsynced <= 0) {
+    isSending = false
+    return
+  }
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/slaps/sync`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ total_slaps: store.count, user_id: store.userId }),
+    })
+    if (res.ok) {
+      store.markSynced()
+      console.log(`✅ Synced total slaps (${store.count})`)
+    } else {
+      console.error(`❌ Failed to sync slaps: ${res.status}`)
+    }
+  } catch (err) {
+    console.error('❌ Error syncing slaps:', err)
+  } finally {
+    isSending = false
+  }
+}
 
 function refreshApp() {
   requiresUpdate.value = false
   window.location.reload()
-}
-
-function debounceSendSlaps() {
-  const unsent = store.getUnsentSlaps()
-
-  // If we've reached the threshold, send immediately
-  if (unsent >= 50) {
-    if (timeout) clearTimeout(timeout)
-    void sendSlaps(unsent)
-    return
-  }
-
-  // Debounced send
-  if (timeout) clearTimeout(timeout)
-  timeout = setTimeout(() => {
-    const unsentNow = store.getUnsentSlaps()
-    if (unsentNow > 0) void sendSlaps(unsentNow)
-  }, 2000)
-}
-
-async function sendSlaps(count: number) {
-  if (isSending) return
-  isSending = true
-
-  try {
-    const res = await fetch(`${API_BASE_URL}/slaps/update`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ slap_count: count, user_id: store.userId }),
-    })
-    if (res.ok) {
-      store.markSubmitted()
-      console.log(`✅ Sent ${count} slaps successfully!`)
-    } else {
-      console.error(`❌ Failed to send slaps: ${res.status}`)
-    }
-  } catch (err) {
-    console.error('❌ Error sending slaps:', err)
-  } finally {
-    isSending = false
-  }
 }
 
 async function fetchUserId() {
@@ -179,7 +182,7 @@ async function fetchUserId() {
     const data = await res.json()
     if (res.ok && data.user_id) {
       store.setUserId(data.user_id)
-    }else{
+    } else {
       console.error('❌ Failed to create user ID:', data)
     }
   } catch (err) {
@@ -201,21 +204,18 @@ async function fetchStats() {
     if (res.ok) {
       if (data.global_count !== undefined) {
         store.setGlobalSlaps(data.global_count)
-      }
-      else{
+      } else {
         console.warn('⚠️ Global count not found in response')
       }
       if (data.rank !== undefined) {
-        // Get rank and total out of the data
         store.setTotalUsers(data.rank.total)
         store.setRank(data.rank.rank)
-      }else{
+      } else {
         console.warn('⚠️ Rank not found in response')
       }
-      if (data.update !== undefined){
+      if (data.update !== undefined) {
         requiresUpdate.value = data.update
-      }
-      else{
+      } else {
         console.warn('⚠️ Update flag not found in response')
       }
     }
@@ -223,7 +223,6 @@ async function fetchStats() {
     console.error('❌ Error fetching slap stats:', err)
   }
 }
-
 
 function handleVisibilityChange() {
   if (document.hidden) {
@@ -245,50 +244,34 @@ async function periodicFetch() {
 
 function handleOnline() {
   isOnline.value = true
-  console.log('🟢 Back online')
-  if (store.getUnsentSlaps() > 0) {
-    sendSlaps(store.getUnsentSlaps())
-  }
+  void sendSlaps()
+  void fetchStats()
 }
 
 function handleOffline() {
   isOnline.value = false
-  console.log('🔴 Offline')
 }
 
+onMounted(async () => {
+  await fetchUserId()
+  await fetchStats()
 
-async function fetchInitialData() {
-  isFetching.value = true
+  isFetching.value = false
   showSpinner.value = false
 
-  const spinnerTimer = setTimeout(() => {
-    showSpinner.value = true
-  }, 100)
+  interval = setInterval(periodicFetch, 15000)
 
-  try {
-    await fetchUserId()
-    await fetchStats()
-  } finally {
-    clearTimeout(spinnerTimer)
-    isFetching.value = false
-    showSpinner.value = false
-  }
-}
-
-
-
-onMounted(() => {
-  fetchInitialData()
-  interval = setInterval(periodicFetch, 6000)
-  document.addEventListener('visibilitychange', handleVisibilityChange)
   window.addEventListener('online', handleOnline)
   window.addEventListener('offline', handleOffline)
+  document.addEventListener('visibilitychange', handleVisibilityChange)
 })
 
 onUnmounted(() => {
-  clearInterval(interval)
-  document.removeEventListener('visibilitychange', handleVisibilityChange)
+  if (timeout) clearTimeout(timeout)
+  if (interval) clearInterval(interval)
+
   window.removeEventListener('online', handleOnline)
   window.removeEventListener('offline', handleOffline)
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
 })
 </script>

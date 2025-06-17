@@ -1,12 +1,12 @@
 import { defineStore } from 'pinia'
 
-const CURRENT_SCHEMA_VERSION = 1
+const CURRENT_SCHEMA_VERSION = 2
 
 export const useSlapStore = defineStore('slap', {
   state: () => ({
     count: 0,
     userId: null as string | null,
-    lastSubmittedCount: 0,
+    lastSyncedCount: 0,  // checkpoint of last sync
     globalSlaps: 0,
     rank: 0,
     totalUsers: 0,
@@ -20,11 +20,13 @@ export const useSlapStore = defineStore('slap', {
     setUserId(userId: string) {
       this.userId = userId
     },
-    getUnsentSlaps(): number {
-      return this.count - this.lastSubmittedCount
+    // Number of new slaps since last sync
+    getUnsyncedSlaps(): number {
+      return this.count - this.lastSyncedCount
     },
-    markSubmitted() {
-      this.lastSubmittedCount = this.count
+    // Mark that we have successfully synced all slaps up to current count
+    markSynced() {
+      this.lastSyncedCount = this.count
     },
     setGlobalSlaps(count: number) {
       this.globalSlaps = count
@@ -39,7 +41,7 @@ export const useSlapStore = defineStore('slap', {
       return this.userId
     },
     reset() {
-      this.$reset() // resets to initial state
+      this.$reset()
     },
     getSchemaVersion(): number {
       return this.schemaVersion
@@ -48,6 +50,6 @@ export const useSlapStore = defineStore('slap', {
 
   persist: {
     key: 'slap',
-    storage: localStorage, // optional, defaults to localStorage
+    storage: localStorage,
   },
 })
