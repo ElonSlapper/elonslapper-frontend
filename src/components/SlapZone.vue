@@ -1,6 +1,10 @@
 <template>
   <div class="flex flex-col items-center gap-y-5 md:gap-y-10">
 
+    <div class="aspect-square w-50">
+      <LoadingElon class="" />
+    </div>
+
     <div v-if="!isOnline" class="rounded-md bg-red-50 p-4">
       <div class="flex">
         <div class="shrink-0">
@@ -63,6 +67,7 @@ import { useSlapStore } from '@/stores/slap'
 import elonImage from '@/assets/elon.jpg'
 import slappedImage from '@/assets/slapped.jpg'
 import { getAppVersion } from '@/util/version'
+import LoadingElon from '@/components/LoadingElon.vue'
 
 const store = useSlapStore()
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
