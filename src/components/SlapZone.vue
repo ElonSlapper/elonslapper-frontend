@@ -1,9 +1,5 @@
 <template>
-  <div class="flex flex-col items-center gap-y-5 md:gap-y-10">
-
-    <div class="aspect-square w-50">
-      <LoadingElon class="" />
-    </div>
+  <div class="min-h-screen flex items-center justify-center">
 
     <div v-if="!isOnline" class="rounded-md bg-red-50 p-4">
       <div class="flex">
@@ -42,18 +38,24 @@
       </div>
     </div>
 
-    <GlobalCount :globalSlaps="formattedGlobalSlaps" />
-    <SlapImage
-      :image="currentImage"
-      :isClicked="isCursorClicked"
-      @slap="slap"
-    />
+    <div v-if="isLoading" class="aspect-square w-50">
+      <LoadingElon class="" />
+    </div>
 
-    <SlapStats
-      :storeCount="formattedStoreCount"
-      :rank="formattedRank"
-      :totalUsers="formattedTotalUsers"
-    />
+    <div v-else class="flex flex-col items-center gap-y-5 md:gap-y-10">
+      <GlobalCount :globalSlaps="formattedGlobalSlaps" />
+      <SlapImage
+        :image="currentImage"
+        :isClicked="isCursorClicked"
+        @slap="slap"
+      />
+
+      <SlapStats
+        :storeCount="formattedStoreCount"
+        :rank="formattedRank"
+        :totalUsers="formattedTotalUsers"
+      />
+    </div>
   </div>
 </template>
 
@@ -76,6 +78,8 @@ const currentImage = ref(elonImage)
 const isCursorClicked = ref(false)
 const isOnline = ref(navigator.onLine)
 const requiresUpdate = ref(false)
+const isLoading = ref(true)
+
 let timeout: ReturnType<typeof setTimeout> | null = null
 let interval: ReturnType<typeof setInterval>
 
@@ -233,10 +237,16 @@ function handleOffline() {
   console.log('🔴 Offline')
 }
 
+async function fetchInitialData() {
+  isLoading.value = true
+  await fetchUserId()
+  await fetchStats()
+  isLoading.value = false
+}
+
 
 onMounted(() => {
-  fetchUserId()
-  periodicFetch()
+  fetchInitialData()
   interval = setInterval(periodicFetch, 6000)
   document.addEventListener('visibilitychange', handleVisibilityChange)
   window.addEventListener('online', handleOnline)
