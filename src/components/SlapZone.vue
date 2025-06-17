@@ -54,6 +54,7 @@
         :storeCount="formattedStoreCount"
         :rank="formattedRank"
         :totalUsers="formattedTotalUsers"
+        :nextClosest="store.nextClosestCount"
       />
     </div>
   </div>
@@ -96,6 +97,7 @@ const formattedRank = computed(() =>
 const formattedTotalUsers = computed(() =>
   store.totalUsers > 0 ? store.totalUsers.toLocaleString() : '—'
 )
+
 const appVersion = getAppVersion()
 
 let slapTimeout = 0
@@ -211,6 +213,11 @@ async function fetchStats() {
       if (data.rank !== undefined) {
         store.setTotalUsers(data.rank.total)
         store.setRank(data.rank.rank)
+        if ('next_closest' in data.rank && data.rank.next_closest !== null) {
+          store.setNextClosestCount(data.rank.next_closest)
+        } else {
+          store.setNextClosestCount(null)
+        }
       } else {
         console.warn('⚠️ Rank not found in response')
       }

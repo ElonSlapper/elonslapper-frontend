@@ -10,6 +10,7 @@ export const useSlapStore = defineStore('slap', {
     globalSlaps: 0,
     rank: 0,
     totalUsers: 0,
+    nextClosestCount: null,
     schemaVersion: CURRENT_SCHEMA_VERSION,
   }),
 
@@ -36,6 +37,9 @@ export const useSlapStore = defineStore('slap', {
     },
     setTotalUsers(total: number) {
       this.totalUsers = total
+    },
+    setNextClosestCount(count: number) {
+      this.nextClosestCount = count
     },
     getUserId(): string | null {
       return this.userId
