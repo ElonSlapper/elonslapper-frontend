@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center">
+  <div class="flex flex-col items-center gap-y-5 md:gap-y-10 min-h-screen">
 
     <div v-if="!isOnline" class="rounded-md bg-red-50 p-4">
       <div class="flex">
