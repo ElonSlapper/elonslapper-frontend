@@ -86,6 +86,7 @@ let isSending = false
 
 const isFetching = ref(true)
 const showSpinner = ref(false)
+const refreshTime = 10000 // 10 seconds
 
 const formattedStoreCount = computed(() => store.count.toLocaleString())
 const formattedGlobalSlaps = computed(() => store.globalSlaps.toLocaleString())
@@ -228,7 +229,7 @@ function handleVisibilityChange() {
   if (document.hidden) {
     clearInterval(interval)
   } else {
-    interval = setInterval(periodicFetch, 15000)
+    interval = setInterval(periodicFetch, refreshTime)
   }
 }
 
@@ -259,7 +260,7 @@ onMounted(async () => {
   isFetching.value = false
   showSpinner.value = false
 
-  interval = setInterval(periodicFetch, 15000)
+  interval = setInterval(periodicFetch, refreshTime)
 
   window.addEventListener('online', handleOnline)
   window.addEventListener('offline', handleOffline)
