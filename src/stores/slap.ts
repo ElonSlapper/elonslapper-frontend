@@ -1,13 +1,14 @@
 import { defineStore } from 'pinia'
 
-const CURRENT_SCHEMA_VERSION = 2
+const CURRENT_SCHEMA_VERSION = 3
 
 interface SlapState {
   count: number
   userId: string | null
   lastSyncedCount: number
   globalSlaps: number
-  rank: number
+  rank: number,
+  banned: boolean,
   totalUsers: number
   nextClosestCount: number | null
   schemaVersion: number
@@ -20,6 +21,7 @@ export const useSlapStore = defineStore('slap', {
     lastSyncedCount: 0,  // checkpoint of last sync
     globalSlaps: 0,
     rank: 0,
+    banned: false,
     totalUsers: 0,
     nextClosestCount: null,
     schemaVersion: CURRENT_SCHEMA_VERSION,
@@ -61,6 +63,9 @@ export const useSlapStore = defineStore('slap', {
     getSchemaVersion(): number {
       return this.schemaVersion
     },
+    setBanned(banned: boolean) {
+      this.banned = banned
+    }
   },
 
   persist: {

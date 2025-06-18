@@ -38,7 +38,11 @@
       </div>
     </div>
 
-    <div v-if="isFetching && showSpinner" class="aspect-square w-50">
+    <div v-if="store.banned">
+      You are banned from slapping. Please contact support if you think this is a mistake.
+    </div>
+
+    <div v-else-if="isFetching && showSpinner" class="aspect-square w-50">
       <LoadingElon class="" />
     </div>
 
@@ -61,7 +65,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import SlapImage from './SlapImage.vue'
 import SlapStats from './SlapStats.vue'
 import GlobalCount from './GlobalCount.vue'
@@ -87,7 +91,12 @@ let isSending = false
 
 const isFetching = ref(true)
 const showSpinner = ref(false)
-const refreshTime = 10000 // 10 seconds
+
+const REFRESH_NORMAL = 10000  // 10 seconds
+const REFRESH_BANNED = 60000  // 60 seconds
+const currentRefreshTime = ref(
+  store.banned ? REFRESH_BANNED : REFRESH_NORMAL
+)
 
 const formattedStoreCount = computed(() => store.count.toLocaleString())
 const formattedGlobalSlaps = computed(() => store.globalSlaps.toLocaleString())
@@ -178,6 +187,29 @@ function refreshApp() {
   window.location.reload()
 }
 
+async function rehydrate(count: number, rehydrate_token: string): Promise<void> {
+  // Update the store counts
+  store.count = count
+  store.lastSyncedCount = count
+
+  // Send confirmation to the server
+  try {
+    const response = await fetch(`${API_BASE_URL}/slaps/confirm-rehydrate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rehydrate_token: rehydrate_token, user_id: store.userId, count: count }),
+    })
+    if (!response.ok) {
+      console.error('Failed to confirm rehydration:', response.statusText)
+    }
+    else {
+      console.log('✅ Rehydration confirmed successfully')
+    }
+  } catch (error) {
+    console.error('Error confirming rehydration:', error)
+  }
+}
+
 async function fetchUserId() {
   if (store.userId) return
   try {
@@ -205,6 +237,18 @@ async function fetchStats() {
     const data = await res.json()
 
     if (res.ok) {
+      if(data.banned !== undefined)
+      {
+        if (data.banned) {
+          console.warn('⚠️ User is banned from slapping')
+          store.setBanned(true)
+          return
+        } else {
+          store.setBanned(false)
+        }
+      } else {
+        console.warn('⚠️ Banned status not found in response')
+      }
       if (data.global_count !== undefined) {
         store.setGlobalSlaps(data.global_count)
       } else {
@@ -226,6 +270,13 @@ async function fetchStats() {
       } else {
         console.warn('⚠️ Update flag not found in response')
       }
+
+      if (data.rehydrate !== undefined && data.rehydrate.required === true)
+      {
+        if (data.server_user_slap_count !== undefined){
+          await rehydrate(data.server_user_slap_count, data.rehydrate.token)
+        }
+      }
     }
   } catch (err) {
     console.error('❌ Error fetching slap stats:', err)
@@ -236,8 +287,14 @@ function handleVisibilityChange() {
   if (document.hidden) {
     clearInterval(interval)
   } else {
-    interval = setInterval(periodicFetch, refreshTime)
+    interval = setInterval(periodicFetch, currentRefreshTime.value)
   }
+}
+
+function resetInterval() {
+  console.log("Resetting interval to", currentRefreshTime.value, "ms")
+  if (interval) clearInterval(interval)
+  interval = setInterval(periodicFetch, currentRefreshTime.value)
 }
 
 async function periodicFetch() {
@@ -260,6 +317,11 @@ function handleOffline() {
   isOnline.value = false
 }
 
+watch(() => store.banned, (newBanned: boolean) => {
+  currentRefreshTime.value = newBanned ? REFRESH_BANNED : REFRESH_NORMAL
+  resetInterval()
+})
+
 onMounted(async () => {
   await fetchUserId()
   await fetchStats()
@@ -267,7 +329,7 @@ onMounted(async () => {
   isFetching.value = false
   showSpinner.value = false
 
-  interval = setInterval(periodicFetch, refreshTime)
+  interval = setInterval(periodicFetch, currentRefreshTime.value)
 
   window.addEventListener('online', handleOnline)
   window.addEventListener('offline', handleOffline)
