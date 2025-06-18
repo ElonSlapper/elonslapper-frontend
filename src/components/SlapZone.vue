@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col items-center gap-y-5 md:gap-y-10">
+  <div class="flex flex-col items-center gap-y-5 md:gap-y-10 min-h-screen">
 
     <div v-if="!isOnline" class="rounded-md bg-red-50 p-4">
       <div class="flex">
@@ -38,23 +38,34 @@
       </div>
     </div>
 
-    <GlobalCount :globalSlaps="formattedGlobalSlaps" />
-    <SlapImage
-      :image="currentImage"
-      :isClicked="isCursorClicked"
-      @slap="slap"
-    />
+    <div v-if="store.banned">
+      You are banned from slapping. Lol
+    </div>
 
-    <SlapStats
-      :storeCount="formattedStoreCount"
-      :rank="formattedRank"
-      :totalUsers="formattedTotalUsers"
-    />
+    <div v-else-if="isFetching && showSpinner" class="aspect-square w-50">
+      <LoadingElon class="" />
+    </div>
+
+    <div v-else class="flex flex-col items-center gap-y-5 md:gap-y-10">
+      <GlobalCount :globalSlaps="formattedGlobalSlaps" />
+      <SlapImage
+        :image="currentImage"
+        :isClicked="isCursorClicked"
+        @slap="slap"
+      />
+
+      <SlapStats
+        :storeCount="formattedStoreCount"
+        :rank="formattedRank"
+        :totalUsers="formattedTotalUsers"
+        :nextClosest="store.nextClosestCount"
+      />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import SlapImage from './SlapImage.vue'
 import SlapStats from './SlapStats.vue'
 import GlobalCount from './GlobalCount.vue'
@@ -63,6 +74,7 @@ import { useSlapStore } from '@/stores/slap'
 import elonImage from '@/assets/elon.jpg'
 import slappedImage from '@/assets/slapped.jpg'
 import { getAppVersion } from '@/util/version'
+import LoadingElon from '@/components/LoadingElon.vue'
 
 const store = useSlapStore()
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
@@ -71,10 +83,21 @@ const currentImage = ref(elonImage)
 const isCursorClicked = ref(false)
 const isOnline = ref(navigator.onLine)
 const requiresUpdate = ref(false)
+
 let timeout: ReturnType<typeof setTimeout> | null = null
 let interval: ReturnType<typeof setInterval>
+let fetching = false
+let isSending = false
 
-// Computed
+const isFetching = ref(true)
+const showSpinner = ref(false)
+
+const REFRESH_NORMAL = 10000  // 10 seconds
+const REFRESH_BANNED = 60000  // 60 seconds
+const currentRefreshTime = ref(
+  store.banned ? REFRESH_BANNED : REFRESH_NORMAL
+)
+
 const formattedStoreCount = computed(() => store.count.toLocaleString())
 const formattedGlobalSlaps = computed(() => store.globalSlaps.toLocaleString())
 const formattedRank = computed(() =>
@@ -83,21 +106,32 @@ const formattedRank = computed(() =>
 const formattedTotalUsers = computed(() =>
   store.totalUsers > 0 ? store.totalUsers.toLocaleString() : '—'
 )
+
 const appVersion = getAppVersion()
 
-// Slap timeout to reset image
 let slapTimeout = 0
 let lastSlapTime = 0
 
 function slap() {
   store.slap()
-  debounceSendSlaps()
+
+  const unsynced = store.getUnsyncedSlaps()
+
+  // Sync immediately if 50 or more new slaps since last sync
+  if (unsynced >= 50) {
+    if (timeout) {
+      clearTimeout(timeout)
+      timeout = null
+    }
+    void sendSlaps()
+  } else {
+    debounceSendSlaps()
+  }
 
   const now = Date.now()
   const timeSinceLastSlap = now - lastSlapTime
   lastSlapTime = now
 
-  // Choose animation duration
   const fastSlap = timeSinceLastSlap < 300
   const animationDuration = fastSlap ? 80 : 200
 
@@ -112,34 +146,67 @@ function slap() {
   }, animationDuration)
 }
 
+function debounceSendSlaps() {
+  if (timeout) clearTimeout(timeout)
+  timeout = setTimeout(() => {
+    void sendSlaps()
+  }, 2000)
+}
+
+async function sendSlaps() {
+  if (isSending) return
+  isSending = true
+
+  const unsynced = store.getUnsyncedSlaps()
+  if (unsynced <= 0) {
+    isSending = false
+    return
+  }
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/slaps/sync`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ total_slaps: store.count, user_id: store.userId }),
+    })
+    if (res.ok) {
+      store.markSynced()
+      console.log(`✅ Synced total slaps (${store.count})`)
+    } else {
+      console.error(`❌ Failed to sync slaps: ${res.status}`)
+    }
+  } catch (err) {
+    console.error('❌ Error syncing slaps:', err)
+  } finally {
+    isSending = false
+  }
+}
 
 function refreshApp() {
   requiresUpdate.value = false
   window.location.reload()
 }
 
-function debounceSendSlaps() {
-  if (timeout) clearTimeout(timeout)
-  timeout = setTimeout(() => {
-    const unsent = store.getUnsentSlaps()
-    if (unsent > 0) sendSlaps(unsent)
-  }, 2000)
-}
+async function rehydrate(count: number, rehydrate_token: string): Promise<void> {
+  // Update the store counts
+  store.count = count
+  store.lastSyncedCount = count
 
-async function sendSlaps(count: number) {
+  // Send confirmation to the server
   try {
-    const res = await fetch(`${API_BASE_URL}/slaps/update`, {
+    const response = await fetch(`${API_BASE_URL}/slaps/confirm-rehydrate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ slap_count: count, user_id: store.userId }),
+      body: JSON.stringify({ rehydrate_token: rehydrate_token, user_id: store.userId, count: count }),
     })
-    if (res.ok){
-      store.markSubmitted()
-      console.log(`✅ Sent ${count} slaps successfully!`)
+    if (!response.ok) {
+      console.error('Failed to confirm rehydration:', response.statusText)
     }
-
-  } catch (err) {
-    console.error('❌ Error sending slaps:', err)
+    else {
+      console.log('✅ Rehydration confirmed successfully')
+    }
+  } catch (error) {
+    console.error('Error confirming rehydration:', error)
   }
 }
 
@@ -150,7 +217,7 @@ async function fetchUserId() {
     const data = await res.json()
     if (res.ok && data.user_id) {
       store.setUserId(data.user_id)
-    }else{
+    } else {
       console.error('❌ Failed to create user ID:', data)
     }
   } catch (err) {
@@ -170,24 +237,45 @@ async function fetchStats() {
     const data = await res.json()
 
     if (res.ok) {
+      if(data.banned !== undefined)
+      {
+        if (data.banned) {
+          console.warn('⚠️ User is banned from slapping')
+          store.setBanned(true)
+          return
+        } else {
+          store.setBanned(false)
+        }
+      } else {
+        console.warn('⚠️ Banned status not found in response')
+      }
       if (data.global_count !== undefined) {
         store.setGlobalSlaps(data.global_count)
-      }
-      else{
+      } else {
         console.warn('⚠️ Global count not found in response')
       }
       if (data.rank !== undefined) {
-        // Get rank and total out of the data
         store.setTotalUsers(data.rank.total)
         store.setRank(data.rank.rank)
-      }else{
+        if ('next_closest' in data.rank && data.rank.next_closest !== null) {
+          store.setNextClosestCount(data.rank.next_closest)
+        } else {
+          store.setNextClosestCount(null)
+        }
+      } else {
         console.warn('⚠️ Rank not found in response')
       }
-      if (data.update !== undefined){
+      if (data.update !== undefined) {
         requiresUpdate.value = data.update
-      }
-      else{
+      } else {
         console.warn('⚠️ Update flag not found in response')
+      }
+
+      if (data.rehydrate !== undefined && data.rehydrate.required === true)
+      {
+        if (data.server_user_slap_count !== undefined){
+          await rehydrate(data.server_user_slap_count, data.rehydrate.token)
+        }
       }
     }
   } catch (err) {
@@ -195,16 +283,20 @@ async function fetchStats() {
   }
 }
 
-
 function handleVisibilityChange() {
   if (document.hidden) {
     clearInterval(interval)
   } else {
-    interval = setInterval(periodicFetch, 15000)
+    interval = setInterval(periodicFetch, currentRefreshTime.value)
   }
 }
 
-let fetching = false
+function resetInterval() {
+  console.log("Resetting interval to", currentRefreshTime.value, "ms")
+  if (interval) clearInterval(interval)
+  interval = setInterval(periodicFetch, currentRefreshTime.value)
+}
+
 async function periodicFetch() {
   if (fetching) return
   fetching = true
@@ -217,31 +309,39 @@ async function periodicFetch() {
 
 function handleOnline() {
   isOnline.value = true
-  console.log('🟢 Back online')
-  if (store.getUnsentSlaps() > 0) {
-    sendSlaps(store.getUnsentSlaps())
-  }
+  void sendSlaps()
+  void fetchStats()
 }
 
 function handleOffline() {
   isOnline.value = false
-  console.log('🔴 Offline')
 }
 
+watch(() => store.banned, (newBanned: boolean) => {
+  currentRefreshTime.value = newBanned ? REFRESH_BANNED : REFRESH_NORMAL
+  resetInterval()
+})
 
-onMounted(() => {
-  fetchUserId()
-  periodicFetch()
-  interval = setInterval(periodicFetch, 6000)
-  document.addEventListener('visibilitychange', handleVisibilityChange)
+onMounted(async () => {
+  await fetchUserId()
+  await fetchStats()
+
+  isFetching.value = false
+  showSpinner.value = false
+
+  interval = setInterval(periodicFetch, currentRefreshTime.value)
+
   window.addEventListener('online', handleOnline)
   window.addEventListener('offline', handleOffline)
+  document.addEventListener('visibilitychange', handleVisibilityChange)
 })
 
 onUnmounted(() => {
-  clearInterval(interval)
-  document.removeEventListener('visibilitychange', handleVisibilityChange)
+  if (timeout) clearTimeout(timeout)
+  if (interval) clearInterval(interval)
+
   window.removeEventListener('online', handleOnline)
   window.removeEventListener('offline', handleOffline)
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
 })
 </script>
