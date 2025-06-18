@@ -39,7 +39,7 @@
     </div>
 
     <div v-if="store.banned">
-      You are banned from slapping. Please contact support if you think this is a mistake.
+      You are banned from slapping. Lol
     </div>
 
     <div v-else-if="isFetching && showSpinner" class="aspect-square w-50">
