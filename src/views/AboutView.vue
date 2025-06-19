@@ -50,17 +50,9 @@ import BackButton from '@/components/BackButton.vue';
       </div>
 
       <div>
-        <dt class="font-semibold text-gray-900">Support it?</dt>
+        <dt class="font-semibold text-gray-900">Cheating</dt>
         <dd class="mt-1 text-gray-600">
-          If you like this app and want to support its development, you can buy me a coffee. It helps keep the servers running and the slaps coming. <br>
-          <a
-            href="https://coff.ee/angus_turtle"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="block mt-2 inline-block text-yellow-600 underline hover:text-yellow-700 transition"
-          >
-            ☕ Buy me a coffee
-          </a>
+          If u cheat, u will be banned :(<br>
         </dd>
       </div>
     </dl>
