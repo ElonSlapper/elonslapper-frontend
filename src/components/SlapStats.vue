@@ -26,7 +26,7 @@
     <div v-if="nextClosest">
       <hr class="h-px my-8 bg-gray-200 border-0 dark:bg-gray-700">
       <p class="text-sm text-gray-500">
-        Next closest user slap count
+        Next highest user slap count
       </p>
       <p class="mt-1"> <span class="font-mono text-xs text-gray-500">{{ formattedNextClosest }}</span> </p>
     </div>

@@ -17,11 +17,6 @@ const router = createRouter({
       component: HomeView,
     },
     {
-      path: '/about',
-      name: 'About',
-      component: AboutView,
-    },
-    {
       path: '/settings',
       name: 'Settings',
       component: SettingsView,

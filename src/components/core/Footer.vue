@@ -6,7 +6,6 @@
 
       <div class="text-xs space-x-4 text-gray-500">
         <RouterLink to="/" class="underline hover:text-gray-700">Home</RouterLink>
-        <RouterLink to="/about" class="underline hover:text-gray-700">About</RouterLink>
         <RouterLink to="/settings" class="underline hover:text-gray-700">Settings</RouterLink>
       </div>
 
