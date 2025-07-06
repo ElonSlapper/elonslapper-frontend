@@ -8,13 +8,11 @@ import { getAppVersion } from '@/util/version'
 const store = useSlapStore()
 
 const version = ref('unknown')
-const userId = ref('unknown')
 const schemaVersion = ref('unknown')
 
 // On mount, check for updates
 onMounted(() => {
   version.value = getAppVersion()
-  userId.value = store.getUserId() || 'unknown'
   schemaVersion.value = store.getSchemaVersion()?.toString() || 'unknown'
 })
 
