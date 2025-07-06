@@ -8,19 +8,14 @@ import { getAppVersion } from '@/util/version'
 const store = useSlapStore()
 
 const version = ref('unknown')
-const userId = ref('unknown')
 const schemaVersion = ref('unknown')
 
 // On mount, check for updates
 onMounted(() => {
   version.value = getAppVersion()
-  userId.value = store.getUserId() || 'unknown'
   schemaVersion.value = store.getSchemaVersion()?.toString() || 'unknown'
 })
 
-function forceUpdate() {
-  window.location.reload()
-}
 
 function clearAllData() {
   const confirmed = window.confirm('Are you sure you want to clear all data? This cannot be undone.')
@@ -48,14 +43,9 @@ function clearAllData() {
           <dd class="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0 font-mono">{{ schemaVersion }}</dd>
         </div>
         <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-          <dt class="text-sm/6 font-medium text-gray-900">Device ID</dt>
-          <dd class="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0 font-mono">{{ userId }}</dd>
-        </div>
-        <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
           <dt class="text-sm/6 font-medium text-gray-900">Actions</dt>
           <dd class="mt-2 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
             <div class="flex flex-col space-y-2 sm:flex-row sm:space-x-2 sm:space-y-0 sm:items-center">
-              <MainButton @click="forceUpdate">Force update</MainButton>
               <MainButton variant="danger" @click="clearAllData">Clear all data</MainButton>
             </div>
           </dd>
