@@ -19,7 +19,10 @@ export const useSlapStore = defineStore('slap', {
     },
     getSchemaVersion(): number {
       return this.schemaVersion
-    }
+    },
+    reset() {
+      this.$reset()
+    },
   },
 
   persist: {
